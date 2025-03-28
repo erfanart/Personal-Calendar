@@ -1,0 +1,155 @@
+// src/components/MonthCalendar.tsx
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import CalendarDay from "./Day";
+import type { Month } from "@/types";
+import { PERSIAN_DAYS, type PersianDayName } from "@/constants/persianDays";
+
+interface MonthCalendarProps {
+  months: Month[];
+}
+
+const MonthCalendar = ({ months }: MonthCalendarProps) => {
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
+  return (
+    <div className="relative" dir="rtl">
+      {/* Month Grid - Always visible */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={`grid grid-cols-3 gap-4 p-4 transition-all duration-300 ${
+          selectedMonth !== null ? "blur-[2px]" : ""
+        }`} // وقتی ماه انتخاب میشه این فعال میشه خییییلی خفنه
+      >
+        {months.map((month, index) => (
+          <motion.div
+            key={`month-${index}`}
+            whileHover={{ y: -3, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400 }}
+            onClick={() => setSelectedMonth(index)}
+            className="
+              p-4 rounded-lg border border-gray-200 bg-white
+              shadow-sm cursor-pointer text-center
+              flex flex-col items-center justify-center
+              h-32 hover:bg-blue-50 hover:border-blue-200
+            "
+          >
+            <motion.span
+              className="text-sm text-gray-500"
+              whileHover={{ scale: 1.1 }}
+            >
+              ماه
+            </motion.span>
+            <motion.h3
+              className="text-xl font-bold text-gray-800 mt-1"
+              whileHover={{ color: "#3b82f6" }}
+            >
+              {month.name}
+            </motion.h3>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Month Popup - Appears over the grid */}
+      <AnimatePresence>
+        {selectedMonth !== null && (
+          <>
+            {/* Semi-transparent overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0  bg-opacity-50 z-1 backdrop-blur-[2px]"
+              onClick={() => setSelectedMonth(null)}
+            />
+
+            {/* Popup content */}
+            <motion.div
+              key={`month-${selectedMonth}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-1 w-full max-w-5xl p-4"
+            >
+              {/* <div className="border rounded-xl p-6 bg-white shadow-lg w-full "> */}
+              <div className="w-full h-full max-w-6xl mx-auto flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden">
+              <div className="flex justify-between items-center p-4 border-b">
+
+              <motion.header
+                  className="mb-6 flex justify-between items-center "
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    تقویم {months[selectedMonth].name}
+                  </h2>
+                </motion.header>
+                <button
+                        onClick={() => setSelectedMonth(null)}
+                        className="text-gray-500 hover:text-gray-700 text-2xl p-1"
+                      >
+                        ×
+                      </button>
+                </div>
+                <motion.div
+                  className="mb-3 grid grid-cols-7 gap-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  >
+                  {PERSIAN_DAYS.map((day) => (
+                    <motion.div
+                      key={`header-${day}`}
+                      whileHover={{ scale: 1.05 }}
+                      className="rounded-md bg-gray-100 py-2 text-center font-medium text-gray-600 hover:shadow-md "
+                      >
+                      {day}
+                    </motion.div>
+                  ))}
+                </motion.div>
+                
+                <div className="overflow-y-auto max-h-[calc(100vh-300px)] grid grid-cols-7 gap-1 ">
+                    <CalendarDay days={months[selectedMonth].calendarDays} />
+                </div>
+                </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default MonthCalendar;
+
+
+query MyQuery {
+  getMonths {
+    id
+    name
+    season
+    calendarDays {
+      dayName
+      id
+      jalaliDate
+      timeSlots {
+        hour
+        id
+        note {
+          id
+          text
+        }
+        tags {
+          id
+          name
+        }
+      }
+    }
+  }
+}
