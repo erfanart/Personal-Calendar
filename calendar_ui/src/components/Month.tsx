@@ -1,4 +1,3 @@
-// src/components/MonthCalendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,18 +29,15 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
       try {
         const { data } = await client.query({
           query: GET_MONTH_DETAILS,
-          variables: { id: selectedMonthId }, // Use the selected month ID
+          variables: { id: selectedMonthId },
         });
         
-        // Check if data.getMonth exists (singular) or data.getMonths (plural)
         const monthData = (data.getMonths && data.getMonths.length ? data.getMonths[0] : null);
-        // console.log(monthData);
         if (!monthData) {
           throw new Error("Month data not found");
         }
         
         setMonthDetails(monthData);
-        console.log(data.getMonths)
       } catch (err) {
         setError("Failed to load month details");
         console.error("Error fetching month details:", err);
@@ -55,11 +51,11 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
 
   return (
     <div className="relative" dir="rtl">
-      {/* Month Grid - Always visible */}
+      {/* Month Grid - Responsive columns */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className={`grid grid-cols-3 gap-4 p-4 transition-all duration-300 ${
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3 transition-all duration-300 ${
           selectedMonthId !== null ? "blur-[2px]" : ""
         }`}
       >
@@ -67,33 +63,27 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
           <motion.div
             key={`month-${month.id}`}
             whileHover={{ y: -3, scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400 }}
             onClick={() => setSelectedMonthId(month.id)}
             className="
-              p-4 rounded-lg border border-gray-200 bg-white
+              p-3 rounded-lg border border-gray-200 bg-white
               shadow-sm cursor-pointer text-center
               flex flex-col items-center justify-center
-              h-32 hover:bg-blue-50 hover:border-blue-200
+              h-28 sm:h-32 hover:bg-blue-50 hover:border-blue-200
             "
           >
-            <motion.span
-              className="text-sm text-gray-500"
-              whileHover={{ scale: 1.1 }}
-            >
+            <span className="text-xs sm:text-sm text-gray-500">
               ماه
-            </motion.span>
-            <motion.h3
-              className="text-xl font-bold text-gray-800 mt-1"
-              whileHover={{ color: "#3b82f6" }}
-            >
+            </span>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mt-1">
               {month.name}
-            </motion.h3>
+            </h3>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Month Popup - Appears over the grid */}
+      {/* Month Popup - Responsive sizing */}
       <AnimatePresence>
         {selectedMonthId !== null && (
           <>
@@ -101,7 +91,7 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-opacity-50 z-1 backdrop-blur-[2px]"
+              className="fixed inset-0 bg-black/30 z-10 backdrop-blur-[2px]"
               onClick={() => {
                 setSelectedMonthId(null);
                 setMonthDetails(null);
@@ -114,34 +104,28 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-1 w-full max-w-5xl p-4"
+              // className="fixed inset-0  sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 z-20 w-full sm:w-[95%] sm:max-w-5xl p-2 sm:p-4"
+              className="fixed inset-0 z-20 flex items-center justify-center p-2 sm:w-[95%] sm:max-w-5xl p-2 sm:p-4"
             >
-              <div className="w-full h-full max-w-6xl mx-auto flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden">
-                <div className="flex justify-between items-center p-4 border-b">
+              <div className="w-full h-[80vh] sm:h-[90vh] md:h-[95vh] mx-auto max-w-5xl flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
+                <div className="flex justify-between items-center p-3 sm:p-4 border-b">
                   {loading ? (
                     <div className="flex-1 flex justify-center">
-                      <MoonLoader size={24} color="#3b82f6" />
+                      <MoonLoader size={20} color="#3b82f6" />
                     </div>
                   ) : error ? (
-                    <div className="text-red-500">{error}</div>
+                    <div className="text-red-500 text-sm sm:text-base">{error}</div>
                   ) : (
                     <>
-                      <motion.header
-                        className="mb-6 flex justify-between items-center"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        <h2 className="text-2xl font-bold text-gray-900">
-                          تقویم {monthDetails?.name } {/*|| months.find(m => m.id === selectedMonthId)?.name}*/}
-                        </h2>
-                      </motion.header>
+                      <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+                        تقویم {monthDetails?.name}
+                      </h2>
                       <button
                         onClick={() => {
                           setSelectedMonthId(null);
                           setMonthDetails(null);
                         }}
-                        className="text-gray-500 hover:text-gray-700 text-2xl p-1"
+                        className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1"
                       >
                         ×
                       </button>
@@ -150,34 +134,33 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
                 </div>
 
                 {loading ? (
-                  <div className="flex-1 flex items-center justify-center p-8">
-                    <MoonLoader size={40} color="#3b82f6" />
+                  <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+                    <MoonLoader size={30} color="#3b82f6" />
                   </div>
                 ) : error ? (
-                  <div className="p-8 text-center text-red-500">
+                  <div className="p-4 sm:p-8 text-center text-red-500">
                     {error}
                   </div>
                 ) : (
                   monthDetails && (
                     <>
                       <motion.div
-                        className="mb-3 grid grid-cols-7 gap-1"
+                        className="mb-2 grid grid-cols-7 gap-1 px-1 sm:px-2"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                       >
                         {PERSIAN_DAYS.map((day) => (
-                          <motion.div
+                          <div
                             key={`header-${day}`}
-                            whileHover={{ scale: 1.05 }}
-                            className="rounded-md bg-gray-100 py-2 text-center font-medium text-gray-600 hover:shadow-md"
+                            className="rounded-md bg-gray-100 py-1 sm:py-2 text-center text-xs sm:text-sm font-medium text-gray-600"
                           >
                             {day}
-                          </motion.div>
+                          </div>
                         ))}
                       </motion.div>
                       
-                      <div className="overflow-y-auto max-h-[calc(100vh-300px)] grid grid-cols-7 gap-1">
+                      <div className="overflow-y-auto flex-1 grid grid-cols-7 gap-1 px-1 sm:px-2 pb-2">
                         <CalendarDay days={monthDetails.calendarDays} />
                       </div>
                     </>

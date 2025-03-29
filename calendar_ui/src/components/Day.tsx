@@ -110,22 +110,24 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
             </div>
 
             <div className="flex-grow overflow-y-auto">
+            <div className="block md:hidden sm:hidden" >
               {day.timeSlots.map((slot) => {
                 const hour = typeof slot.hour === "string" ? parseInt(slot.hour) : slot.hour;
                 const nextHour = (hour + 1) % 24;
-
+                
                 return (
                   <div
-                    key={slot.id}
-                    className={`text-xs py-1 text-right text-gray-600 ${
-                      slot.note?.text || slot.tags.length > 0 ? "" : "bg-red-100"
-                    }`}
+                  key={slot.id}
+                  className={`text-xs py-1 text-right text-gray-600 ${
+                    slot.note?.text || slot.tags.length > 0 ? "" : "bg-red-100"
+                  }`}
                   >
                     {formatTime(hour)} - {formatTime(nextHour)}
                   </div>
                 );
               })}
             </div>
+              </div>
           </motion.div>
 
           <AnimatePresence>
