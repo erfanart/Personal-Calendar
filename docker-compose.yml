@@ -1,0 +1,10 @@
+services:
+  epc:
+    build: .
+    volumes:
+      - ./data/out:/app/out # UI static files
+      - ./data/db:/app/db # SQLite database
+      - ./data/settings.conf:/app/settings.conf # Config file
+    # ports:
+    #   - "8000:8000"
+    restart: unless-stopped

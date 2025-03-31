@@ -2,21 +2,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from models import CalendarDay, TimeSlot, Month
 from jalali import Jalali
-
+from config import settings
 def initialize_calendar(db: Session):
-    # Define Persian months
-    # persian_months = [
-    #     "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
-    #     "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
-    # ]
-    
-    # Insert Persian months if not exists
-
-    # for name in persian_months:
-    #     existing_month = db.query(Month).filter(Month.name == name).first()
-
-            # existing_month[i] = new_month.name
-    # Define start and end dates
     first_day = datetime(2025, 3, 21)  # معادل اول فروردین ۱۴۰۴
     last_day = datetime(2026, 3, 20)   # معادل آخر اسفند ۱۴۰۴
 

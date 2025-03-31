@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CalendarDay from "./Day";
 import { PERSIAN_DAYS } from "@/constants/persianDays";
-import client from '@/lib/graphql/client';
-import { GET_MONTH_DETAILS } from '@/lib/graphql/queries';
+import client from "@/lib/graphql/client";
+import { GET_MONTH_DETAILS } from "@/lib/graphql/queries";
 import { MoonLoader } from "react-spinners";
 import type { Month } from "@/types";
+import Backdrop from "./Backdrop";
 
 interface MonthCalendarProps {
   months: Month[];
@@ -22,21 +23,22 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
   useEffect(() => {
     const fetchMonthDetails = async () => {
       if (!selectedMonthId) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
         const { data } = await client.query({
           query: GET_MONTH_DETAILS,
           variables: { id: selectedMonthId },
         });
-        
-        const monthData = (data.getMonths && data.getMonths.length ? data.getMonths[0] : null);
+
+        const monthData =
+          data.getMonths && data.getMonths.length ? data.getMonths[0] : null;
         if (!monthData) {
           throw new Error("Month data not found");
         }
-        
+
         setMonthDetails(monthData);
       } catch (err) {
         setError("Failed to load month details");
@@ -73,9 +75,7 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
               h-28 sm:h-32 hover:bg-blue-50 hover:border-blue-200
             "
           >
-            <span className="text-xs sm:text-sm text-gray-500">
-              ماه
-            </span>
+            <span className="text-xs sm:text-sm text-gray-500">ماه</span>
             <h3 className="text-lg sm:text-xl font-bold text-gray-800 mt-1">
               {month.name}
             </h3>
@@ -87,14 +87,11 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
       <AnimatePresence>
         {selectedMonthId !== null && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 z-10 backdrop-blur-[2px]"
+            <Backdrop
+              zIndex={10}
+              blurAmount="2px"
               onClick={() => {
                 setSelectedMonthId(null);
-                setMonthDetails(null);
               }}
             />
 
@@ -104,8 +101,8 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              // className="fixed inset-0  sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 z-20 w-full sm:w-[95%] sm:max-w-5xl p-2 sm:p-4"
-              className="fixed inset-0 z-20 flex items-center justify-center p-2 sm:w-[95%] sm:max-w-5xl p-2 sm:p-4"
+              // className="fixed inset-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 z-20 w-full sm:w-[95%] sm:max-w-5xl p-2 sm:p-4"
+              className="fixed inset-0 z-20 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2  w-full sm:w-[95%] sm:max-w-5xl sm:max-w-5xl p-2 sm:p-4 "
             >
               <div className="w-full h-[80vh] sm:h-[90vh] md:h-[95vh] mx-auto max-w-5xl flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
                 <div className="flex justify-between items-center p-3 sm:p-4 border-b">
@@ -114,7 +111,9 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
                       <MoonLoader size={20} color="#3b82f6" />
                     </div>
                   ) : error ? (
-                    <div className="text-red-500 text-sm sm:text-base">{error}</div>
+                    <div className="text-red-500 text-sm sm:text-base">
+                      {error}
+                    </div>
                   ) : (
                     <>
                       <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
@@ -125,7 +124,7 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
                           setSelectedMonthId(null);
                           setMonthDetails(null);
                         }}
-                        className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1"
+                        className="text-gray-500 hover:text-gray-700 text-xl cursor-pointer sm:text-2xl p-1"
                       >
                         ×
                       </button>
@@ -159,8 +158,8 @@ const MonthCalendar = ({ months }: MonthCalendarProps) => {
                           </div>
                         ))}
                       </motion.div>
-                      
-                      <div className="overflow-y-auto flex-1 grid grid-cols-7 gap-1 px-1 sm:px-2 pb-2">
+
+                      <div className=" overflow-y-auto flex-1 grid grid-cols-7 gap-1 px-1 sm:px-2 pb-2">
                         <CalendarDay days={monthDetails.calendarDays} />
                       </div>
                     </>

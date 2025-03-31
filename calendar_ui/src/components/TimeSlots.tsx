@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { TimeSlot as TimeSlotType } from "@/types";
 import Note from "./Note";
 import { TagInput } from "./Tag/TagInput";
+import Backdrop from "./Backdrop";
 
 interface TimeSlotProps {
   timeSlots: TimeSlotType[];
@@ -15,7 +16,9 @@ const TimeSlot = ({ timeSlots, onNoteUpdate }: TimeSlotProps) => {
   const [localTimeSlots, setLocalTimeSlots] = useState<TimeSlotType[]>(() =>
     timeSlots.map((slot) => ({
       ...slot,
-      note: slot.note ? { ...slot.note } : { id: -1, text: "", timeSlotId: slot.id },
+      note: slot.note
+        ? { ...slot.note }
+        : { id: -1, text: "", timeSlotId: slot.id },
       tags: slot.tags ? [...slot.tags] : [],
     }))
   );
@@ -85,7 +88,7 @@ const TimeSlot = ({ timeSlots, onNoteUpdate }: TimeSlotProps) => {
                 type: "spring",
                 stiffness: 400,
               }}
-              className="cursor-pointer border border-gray-200 p-2 rounded-lg hover:shadow-md hover:border-blue-400 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
+              className="cursor-pointer border border-gray-200 p-2 overflow-hidden rounded-lg hover:shadow-md hover:border-blue-400 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
               dir="rtl"
             >
               {slot.note?.text || <span className="text-gray-400">یاداشت</span>}
@@ -95,33 +98,32 @@ const TimeSlot = ({ timeSlots, onNoteUpdate }: TimeSlotProps) => {
           <AnimatePresence>
             {selectedTimeSlot === index && (
               <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 backdrop-blur-[2px] z-10"
-                  onClick={() => setSelectedTimeSlot(null)}
+                <Backdrop
+                  zIndex={40}
+                  blurAmount="2px"
+                  onClick={() => {
+                    setSelectedTimeSlot(null);
+                  }}
                 />
-
                 <motion.div
                   key={`note-modal-${slot.id}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                   transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                  className="fixed inset-0 z-20 flex items-center justify-center p-4"
+                  className="fixed inset-0 z-60 flex items-center justify-center p-4"
                 >
                   <div className="w-full h-full max-w-6xl mx-auto flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div className="flex justify-between items-center p-4 border-b">
                       <h3 className="text-xl font-bold">یاداشت</h3>
                       <button
                         onClick={() => setSelectedTimeSlot(null)}
-                        className="text-gray-500 hover:text-gray-700 text-2xl p-1"
+                        className="text-gray-500 hover:text-gray-700 cursor-pointer text-2xl p-1"
                       >
                         ×
                       </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-scroll p-4">
                       <Note
                         note={localTimeSlots[index]?.note}
                         onSave={(text) => handleNoteUpdate(slot.id, text)}

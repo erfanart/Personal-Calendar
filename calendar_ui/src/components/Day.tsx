@@ -9,7 +9,24 @@ import { GET_DAY_DETAILS } from "@/lib/graphql/queries";
 import { MoonLoader } from "react-spinners";
 import type { CalendarDay } from "@/types";
 import { PERSIAN_DAYS, type PersianDayName } from "@/constants/persianDays";
+import Backdrop from "./Backdrop";
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640); // موبایل = کمتر از 640px
+    };
+
+    handleResize(); // مقدار اولیه
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+};
 
 interface CalendarDayProps {
   days: CalendarDay[];
@@ -24,7 +41,7 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
   const [dayDetails, setDayDetails] = useState<CalendarDay | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const isMobile = useIsMobile();
   const formatTime = (hour: number) => {
     const numHour = typeof hour === "string" ? parseInt(hour) : hour;
     return `${numHour.toString().padStart(2, "0")}:00`;
@@ -75,7 +92,9 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           transition={{ delay: index * 0.02 }}
-          className="h-40 rounded border border-gray-100 bg-gray-50"
+          className={`${
+            isMobile ? "h-[10vh]" : "h-40"
+          } rounded border  border-gray-100 bg-gray-50`}
         />
       ))}
 
@@ -92,52 +111,68 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
               type: "spring",
               stiffness: 300,
             }}
-            className="border p-2 rounded-lg h-40 flex flex-col
+            className={`border p-2 rounded-lg ${
+              isMobile ? "h-[10vh]" : "h-40"
+            } flex flex-col
               bg-white shadow-sm
               ease-in-out
               hover:shadow-md hover:border-blue-400 hover:bg-blue-50
               hover:transform hover:-translate-y-0.5
-              cursor-pointer"
+              cursor-pointer`}
             dir="rtl"
           >
-            <div className="mb-1 border-b pb-1">
-              <h3 className="font-medium text-sm text-gray-700">
-                {day.dayName}
-              </h3>
-              <p className="text-xs text-gray-500">
-                {day.jalaliDate.split("-").join("/")}
-              </p>
-            </div>
+            {isMobile && (
+              <>
+                <h3 className="flex items-center justify-center font-medium  text-2xl text-gray-700">
+                  {day.jalaliDate.split("-")[2]}
+                </h3>
+              </>
+            )}
+            {!isMobile && (
+              <>
+                <div className="mb-1 border-b pb-1">
+                  <h3 className="flex items-center justify-center font-medium  text-sm text-gray-700">
+                    {day.jalaliDate.split("-")[2]}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {day.jalaliDate.split("-").join("/")}
+                  </p>
+                </div>
 
-            <div className="flex-grow overflow-y-auto">
-            <div className="block md:hidden sm:hidden" >
-              {day.timeSlots.map((slot) => {
-                const hour = typeof slot.hour === "string" ? parseInt(slot.hour) : slot.hour;
-                const nextHour = (hour + 1) % 24;
-                
-                return (
-                  <div
-                  key={slot.id}
-                  className={`text-xs py-1 text-right text-gray-600 ${
-                    slot.note?.text || slot.tags.length > 0 ? "" : "bg-red-100"
-                  }`}
-                  >
-                    {formatTime(hour)} - {formatTime(nextHour)}
+                <div className="flex-grow overflow-y-auto">
+                  <div className="sm:block">
+                    {day.timeSlots.map((slot) => {
+                      const hour =
+                        typeof slot.hour === "string"
+                          ? parseInt(slot.hour)
+                          : slot.hour;
+                      const nextHour = (hour + 1) % 24;
+
+                      return (
+                        <div
+                          key={slot.id}
+                          className={`text-xs py-1 text-right text-gray-600 ${
+                            slot.note?.text || slot.tags.length > 0
+                              ? ""
+                              : "bg-red-100"
+                          }`}
+                        >
+                          {formatTime(hour)} - {formatTime(nextHour)}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-              </div>
+                </div>
+              </>
+            )}
           </motion.div>
 
           <AnimatePresence>
             {selectedDayIndex === index && (
               <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 backdrop-blur-[2px] z-20"
+                <Backdrop
+                  zIndex={30}
+                  blurAmount="2px"
                   onClick={() => {
                     setSelectedDayIndex(null);
                     setDayDetails(null);
@@ -149,8 +184,11 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                  className="fixed inset-0 z-30 flex items-center justify-center p-4 flex-col"
-                  >
+                  className="fixed z-[100] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-md h-[80vh]"
+                  style={{
+                    zIndex: 1000,
+                  }}
+                >
                   <div className="w-full h-full max-w-6xl mx-auto flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div className="flex justify-between items-center p-4 border-b">
                       {loading ? (
@@ -161,7 +199,7 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
                         <div className="text-red-500">{error}</div>
                       ) : (
                         <>
-                        {console.log(dayDetails)}
+                          {console.log(dayDetails)}
                           <h3 className="text-lg font-bold">{day.dayName}</h3>
                           <p>{day.jalaliDate.split("-").join("/")}</p>
                           <button
@@ -169,7 +207,7 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
                               setSelectedDayIndex(null);
                               setDayDetails(null);
                             }}
-                            className="text-gray-500 hover:text-gray-700 text-2xl p-1"
+                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-2xl p-1"
                             aria-label="Close"
                           >
                             ×
@@ -178,7 +216,7 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
                       )}
                     </div>
                     <div className="flex-1 overflow-y-auto p-4 pb-1">
-                    {loading ? (
+                      {loading ? (
                         <div className="flex-1 flex justify-center">
                           <MoonLoader size={24} color="#3b82f6" />
                         </div>
@@ -186,9 +224,9 @@ const CalendarDay = ({ days }: CalendarDayProps) => {
                         <div className="text-red-500">{error}</div>
                       ) : (
                         <>
-                        <TimeSlots timeSlots={dayDetails?.timeSlots || []
-                      } />
-                      </>)}
+                          <TimeSlots timeSlots={dayDetails?.timeSlots || []} />
+                        </>
+                      )}
                     </div>
                   </div>
                 </motion.div>
